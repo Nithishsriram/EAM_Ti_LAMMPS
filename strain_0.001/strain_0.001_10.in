@@ -1,0 +1,52 @@
+
+clear
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+
+read_data npt_300k_0bar.data
+
+pair_style eam/fs
+pair_coeff * * Ti1.eam.fs Ti
+
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep 0.001                     # ps (1 fs)
+
+thermo 1000
+thermo_style custom step temp pe ke etotal press pxx pyy pzz lx ly lz xy
+
+# Initial box
+variable Lz0 equal $(lz)
+
+# Strain settings
+variable rate equal 0.001           # 1/ps  (1e9 1/s)
+variable target_strain equal -0.10
+variable nsteps equal round(abs(v_target_strain/v_rate)/dt)
+
+# Thermostat + lateral barostat (x, y at 0 bar), z controlled by deform
+fix BARO all npt temp 300.0 300.0 0.1 x 0.0 0.0 1.0 y 0.0 0.0 1.0 couple none
+
+# Compress z at constant engineering strain rate
+fix DEF all deform 1 z erate -${rate} units box remap x
+
+# Outputs
+variable strain_z equal (lz-v_Lz0)/v_Lz0
+variable sxx_GPa equal -pxx/10000.0
+variable syy_GPa equal -pyy/10000.0
+variable szz_GPa equal -pzz/10000.0
+
+fix OUT all print 100 "${strain_z} ${sxx_GPa} ${syy_GPa} ${szz_GPa}" &
+    file z_compressed.data screen no title "# strain_z sxx syy szz (GPa)"
+
+dump TRAJ all custom 1000 ti_z_compressed.lammpstrj id type x y z
+dump_modify TRAJ sort id
+
+run ${nsteps}
+
+unfix DEF
+unfix OUT
+unfix BARO
+undump TRAJ

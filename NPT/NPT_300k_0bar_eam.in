@@ -1,0 +1,29 @@
+
+clear
+
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+
+read_data nvt_300k.data
+
+pair_style eam/fs
+pair_coeff * * Ti1.eam.fs Ti
+
+neighbor 2.0 bin
+neigh_modify delay 0 every 1 check yes
+
+reset_timestep 0
+
+timestep 0.001
+
+fix NPT all npt temp 300.0 300.0 0.1 iso 0.0 0.0 1.0
+
+thermo 1000
+thermo_style custom step temp pe ke etotal vol lx ly lz
+
+run 100000
+
+write_restart npt_300k_0bar.restart
+write_data npt_300k_0bar.data

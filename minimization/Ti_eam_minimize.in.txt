@@ -1,0 +1,28 @@
+clear
+
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+
+read_data Ti.data
+
+mass 1 47.867
+
+pair_style eam/fs
+pair_coeff * * Ti1.eam.fs Ti
+
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+thermo 100
+thermo_style custom step temp pe ke etotal press vol lx ly lz
+
+fix RELAX all box/relax tri 0.0 vmax 0.001
+min_style cg
+minimize 1.0e-12 1.0e-12 10000 100000
+
+write_data Ti_minimized.data
+
+write_dump  all custom minimized.lammpstrj id type x y z
+write_restart minimized.restart
