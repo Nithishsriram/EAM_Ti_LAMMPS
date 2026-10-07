@@ -13,14 +13,6 @@ Molecular dynamics simulation of bulk HCP titanium using the **Finnis–Sinclair
 - Compression up to **10% strain** at a strain rate of **0.001 ps⁻¹**
 - Stress–strain curve obtained using Python
 
-## Software
-
-- ASE
-- LAMMPS
-- Python
-- NumPy
-- Matplotlib
-
 ## Workflow
 
 ```text
